@@ -1,8 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Image, CheckSquare, Brush, Check } from 'lucide-react';
-import Input from './Input';
+import { Card, Button, Form, InputGroup } from 'react-bootstrap';
+import { Image, CheckSquare, Brush } from 'lucide-react';
 import { createNote } from '../services/note.service';
-import './CreateNote.css';
 
 const CreateNote = ({ onNoteCreated }) => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -11,12 +10,6 @@ const CreateNote = ({ onNoteCreated }) => {
 
   const handleChange = (e) => {
     setNote({ ...note, [e.target.name]: e.target.value });
-  };
-
-  const handleCollapse = () => {
-      // If content exists, create note? Or just collapse.
-      // Usually "Close" button submits.
-      setIsExpanded(false);
   };
 
   const handleSubmit = async () => {
@@ -35,7 +28,6 @@ const CreateNote = ({ onNoteCreated }) => {
     }
   };
 
-  // Click outside to collapse/submit
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (containerRef.current && !containerRef.current.contains(event.target)) {
@@ -52,44 +44,57 @@ const CreateNote = ({ onNoteCreated }) => {
   }, [isExpanded, note]);
 
   return (
-    <div className="create-note-wrapper">
-        <div className={`create-note-container ${isExpanded ? 'expanded' : ''}`} ref={containerRef}>
+    <div className="d-flex justify-content-center mb-4 pt-3">
+      <Card 
+        ref={containerRef} 
+        className={`shadow-sm border-0 w-100 ${isExpanded ? 'p-1' : ''}`} 
+        style={{ maxWidth: '600px' }}
+      >
         {!isExpanded ? (
-            <div className="create-note-collapsed" onClick={() => setIsExpanded(true)}>
-            <span className="placeholder-text">Take a note...</span>
-            <div className="collapsed-actions">
-                <CheckSquare size={20} />
-                <Brush size={20} />
-                <Image size={20} />
+          <Card.Body 
+            className="d-flex align-items-center justify-content-between cursor-pointer py-2 px-3" 
+            onClick={() => setIsExpanded(true)}
+          >
+            <span className="text-muted">Take a note...</span>
+            <div className="d-flex gap-3 text-muted">
+              <CheckSquare size={20} />
+              <Brush size={20} />
+              <Image size={20} />
             </div>
-            </div>
+          </Card.Body>
         ) : (
-            <div className="create-note-expanded">
-            <input 
-                type="text" 
-                name="title" 
-                placeholder="Title" 
-                className="note-input title-input" 
+          <Card.Body className="p-3">
+            <Form>
+              <Form.Control
+                type="text"
+                name="title"
+                placeholder="Title"
+                className="border-0 shadow-none fs-5 fw-bold mb-2 p-0"
                 value={note.title}
                 onChange={handleChange}
-            />
-            <textarea 
-                name="description" 
-                placeholder="Take a note..." 
-                className="note-input body-input" 
+              />
+              <Form.Control
+                as="textarea"
+                name="description"
+                placeholder="Take a note..."
+                className="border-0 shadow-none p-0"
+                style={{ resize: 'none', minHeight: '100px' }}
                 autoFocus
                 value={note.description}
                 onChange={handleChange}
-            />
-            <div className="create-note-footer">
-                <div className="footer-actions">
-                    {/* Icons similar to NoteCard */}
+              />
+              <div className="d-flex justify-content-between align-items-center mt-3">
+                <div className="d-flex gap-3 text-muted">
+                  {/* Additional footer icons could go here */}
                 </div>
-                <button className="close-btn" onClick={handleSubmit}>Close</button>
-            </div>
-            </div>
+                <Button variant="light" className="text-dark fw-bold px-4 py-1" onClick={handleSubmit}>
+                  Close
+                </Button>
+              </div>
+            </Form>
+          </Card.Body>
         )}
-        </div>
+      </Card>
     </div>
   );
 };

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
+import { Modal, Button, Form, ListGroup, InputGroup } from 'react-bootstrap';
 import { X, Check, Edit2, Trash2, Tag, Plus } from 'lucide-react';
 import { useLabels } from '../context/LabelContext';
-import './EditLabelsModal.css';
 
 const EditLabelsModal = ({ onClose }) => {
     const { labels, addLabel, updateLabel, deleteLabel } = useLabels();
@@ -16,14 +16,6 @@ const EditLabelsModal = ({ onClose }) => {
             setNewLabelName('');
         } catch (error) {
             console.error("Error creating label", error);
-        }
-    };
-
-    const handleDelete = async (id) => {
-        try {
-            await deleteLabel(id);
-        } catch (error) {
-            console.error("Error deleting label", error);
         }
     };
 
@@ -44,82 +36,104 @@ const EditLabelsModal = ({ onClose }) => {
     };
 
     return (
-        <div className="edit-labels-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-                <h3>Edit labels</h3>
-            </div>
-            
-            <div className="modal-content">
+        <Modal show={true} onHide={onClose} centered size="sm">
+            <Modal.Header closeButton className="border-0">
+                <Modal.Title className="fs-5 fw-bold">Edit labels</Modal.Title>
+            </Modal.Header>
+            <Modal.Body className="pt-0">
                 {/* Create New */}
-                <div className="label-row create-row">
-                    <button 
-                        className="icon-btn-small" 
-                        onClick={() => {
-                            if (newLabelName) {
-                                setNewLabelName(''); // Clear if has text
-                            } else {
-                                // Focus input if empty (optional, just prevent confusion)
-                                document.querySelector('.create-label-input')?.focus();
-                            }
-                        }}
-                    >
-                         {newLabelName ? <X size={18} /> : <Plus size={18} />}
-                    </button>
-                    <input 
-                        className="create-label-input"
-                        type="text" 
-                        placeholder="Create new label" 
-                        value={newLabelName}
-                        onChange={(e) => setNewLabelName(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
-                    />
-                    <button className="icon-btn-small check-btn" onClick={handleCreate} title="Create label">
-                        <Check size={18} />
-                    </button>
+                <div className="mb-3">
+                    <InputGroup size="sm" className="border-bottom border-warning">
+                        <Button 
+                            variant="link" 
+                            className="text-muted p-1" 
+                            onClick={() => setNewLabelName('')}
+                        >
+                            {newLabelName ? <X size={18} /> : <Plus size={18} />}
+                        </Button>
+                        <Form.Control
+                            className="border-0 shadow-none bg-transparent"
+                            placeholder="Create new label"
+                            value={newLabelName}
+                            onChange={(e) => setNewLabelName(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
+                        />
+                        <Button 
+                            variant="link" 
+                            className="text-muted p-1" 
+                            onClick={handleCreate}
+                            disabled={!newLabelName.trim()}
+                        >
+                            <Check size={18} />
+                        </Button>
+                    </InputGroup>
                 </div>
 
                 {/* List */}
-                <div className="labels-list-scroll">
+                <div className="overflow-auto" style={{ maxHeight: '300px' }}>
                     {labels.map(label => (
-                        <div key={label._id} className="label-row">
+                        <div key={label._id} className="d-flex align-items-center mb-1 py-1">
                             {editingLabelId === label._id ? (
-                                <>
-                                    <button className="icon-btn-small" onClick={() => deleteLabel(label._id)}>
+                                <InputGroup size="sm" className="w-100 border-bottom border-warning">
+                                    <Button 
+                                        variant="link" 
+                                        className="text-muted p-1" 
+                                        onClick={() => deleteLabel(label._id)}
+                                    >
                                         <Trash2 size={18} />
-                                    </button>
-                                    <input 
-                                        type="text" 
+                                    </Button>
+                                    <Form.Control 
+                                        className="border-0 shadow-none bg-transparent"
                                         value={editName}
                                         onChange={(e) => setEditName(e.target.value)}
                                         onKeyDown={(e) => e.key === 'Enter' && handleUpdate()}
                                         autoFocus
                                     />
-                                    <button className="icon-btn-small check-btn" onClick={handleUpdate}>
+                                    <Button 
+                                        variant="link" 
+                                        className="text-muted p-1" 
+                                        onClick={handleUpdate}
+                                    >
                                         <Check size={18} />
-                                    </button>
-                                </>
+                                    </Button>
+                                </InputGroup>
                             ) : (
                                 <>
-                                    <div className="label-icon-wrapper" onClick={() => handleDelete(label._id)} title="Delete label">
-                                         {/* Using Trash on left as Delete per user request 'make delete or edit labels from there' - keeps consistency with edit mode */}
-                                         {/* Actually Google Keep uses Label icon on left, pencil on right. Clicking pencil enters edit mode. */}
+                                    <div className="text-muted p-1 me-2">
                                          <Tag size={18} /> 
                                     </div>
-                                    <span className="label-text" onClick={() => startEdit(label)}>{label.name}</span>
-                                    <button className="icon-btn-small" onClick={() => startEdit(label)}>
+                                    <span 
+                                        className="flex-grow-1 cursor-pointer" 
+                                        onClick={() => startEdit(label)}
+                                    >
+                                        {label.name}
+                                    </span>
+                                    <Button 
+                                        variant="link" 
+                                        className="text-muted p-1 opacity-0 hover-opacity-100" 
+                                        onClick={() => startEdit(label)}
+                                    >
                                         <Edit2 size={18} />
-                                    </button>
+                                    </Button>
+                                    <Button 
+                                        variant="link" 
+                                        className="text-muted p-1 opacity-0 hover-opacity-100" 
+                                        onClick={() => deleteLabel(label._id)}
+                                    >
+                                        <Trash2 size={18} />
+                                    </Button>
                                 </>
                             )}
                         </div>
                     ))}
                 </div>
-            </div>
-
-            <div className="modal-footer">
-                <button className="done-btn" onClick={onClose}>Done</button>
-            </div>
-        </div>
+            </Modal.Body>
+            <Modal.Footer className="border-0">
+                <Button variant="link" className="text-dark fw-bold text-decoration-none" onClick={onClose}>
+                    Done
+                </Button>
+            </Modal.Footer>
+        </Modal>
     );
 };
 

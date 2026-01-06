@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Container, Card, Button, Form, ButtonGroup, Dropdown } from 'react-bootstrap';
 import { 
     Bold, 
     Italic, 
@@ -7,16 +8,13 @@ import {
     ListOrdered, 
     Type, 
     Save, 
-    ArrowLeft,
-    Check
+    ArrowLeft
 } from 'lucide-react';
 import { createNote } from '../services/note.service';
-import './CreateNotePage.css';
 
 const CreateNotePage = () => {
     const navigate = useNavigate();
     const [title, setTitle] = useState('');
-    const [description, setDescription] = useState('');
     const [isSaving, setIsSaving] = useState(false);
     const [activeFormats, setActiveFormats] = useState({
         bold: false,
@@ -65,96 +63,100 @@ const CreateNotePage = () => {
     };
 
     return (
-        <div className="notepad-page-container">
-            <div className="notepad-header-nav">
-                <button className="back-btn" onClick={() => navigate('/dashboard')}>
+        <Container className="py-5" style={{ maxWidth: '800px' }}>
+            <div className="d-flex justify-content-between align-items-center mb-4">
+                <Button variant="light" className="d-flex align-items-center gap-2" onClick={() => navigate('/dashboard')}>
                     <ArrowLeft size={20} />
                     <span>Back</span>
-                </button>
-                <button 
-                    className={`save-btn ${isSaving ? 'saving' : ''}`} 
+                </Button>
+                <Button 
+                    variant="warning" 
+                    className="d-flex align-items-center gap-2 px-4 shadow-sm"
                     onClick={handleSave}
                     disabled={isSaving}
                 >
-                    {isSaving ? 'Saving...' : <><Save size={18} /> Save Note</>}
-                </button>
+                    {isSaving ? 'Saving...' : <><Save size={18} /> <span>Save Note</span></>}
+                </Button>
             </div>
 
-            <div className="notepad-paper">
-                <div className="notepad-toolbar">
-                    <button 
-                        type="button" 
-                        className={activeFormats.bold ? 'active' : ''}
-                        onClick={() => execCommand('bold')} 
-                        title="Bold"
-                    >
-                        <Bold size={18} />
-                    </button>
-                    <button 
-                        type="button" 
-                        className={activeFormats.italic ? 'active' : ''}
-                        onClick={() => execCommand('italic')} 
-                        title="Italic"
-                    >
-                        <Italic size={18} />
-                    </button>
-                    <div className="toolbar-divider"></div>
-                    <button 
-                        type="button" 
-                        className={activeFormats.unorderedList ? 'active' : ''}
-                        onClick={() => execCommand('insertUnorderedList')} 
-                        title="Bullet List"
-                    >
-                        <List size={18} />
-                    </button>
-                    <button 
-                        type="button" 
-                        className={activeFormats.orderedList ? 'active' : ''}
-                        onClick={() => execCommand('insertOrderedList')} 
-                        title="Numbered List"
-                    >
-                        <ListOrdered size={18} />
-                    </button>
-                    <div className="toolbar-divider"></div>
-                    <button 
-                        type="button" 
-                        className={activeFormats.h2 ? 'active' : ''}
-                        onClick={() => execCommand('formatBlock', activeFormats.h2 ? 'div' : 'h2')} 
-                        title="Heading"
-                    >
-                        <Type size={18} />
-                    </button>
-                </div>
+            <Card className="shadow-sm border-0 rounded-4 overflow-hidden">
+                <Card.Header className="bg-white border-bottom py-2">
+                    <ButtonGroup className="gap-1">
+                        <Button 
+                            variant={activeFormats.bold ? 'warning' : 'light'} 
+                            size="sm"
+                            onClick={() => execCommand('bold')}
+                            className="rounded border-0"
+                        >
+                            <Bold size={18} />
+                        </Button>
+                        <Button 
+                            variant={activeFormats.italic ? 'warning' : 'light'} 
+                            size="sm"
+                            onClick={() => execCommand('italic')}
+                            className="rounded border-0"
+                        >
+                            <Italic size={18} />
+                        </Button>
+                        <div className="vr mx-2 my-1"></div>
+                        <Button 
+                            variant={activeFormats.unorderedList ? 'warning' : 'light'} 
+                            size="sm"
+                            onClick={() => execCommand('insertUnorderedList')}
+                            className="rounded border-0"
+                        >
+                            <List size={18} />
+                        </Button>
+                        <Button 
+                            variant={activeFormats.orderedList ? 'warning' : 'light'} 
+                            size="sm"
+                            onClick={() => execCommand('insertOrderedList')}
+                            className="rounded border-0"
+                        >
+                            <ListOrdered size={18} />
+                        </Button>
+                        <div className="vr mx-2 my-1"></div>
+                        <Button 
+                            variant={activeFormats.h2 ? 'warning' : 'light'} 
+                            size="sm"
+                            onClick={() => execCommand('formatBlock', activeFormats.h2 ? 'div' : 'h2')}
+                            className="rounded border-0"
+                        >
+                            <Type size={18} />
+                        </Button>
+                    </ButtonGroup>
+                </Card.Header>
 
-                <div className="notepad-content">
-                    <input 
+                <Card.Body className="p-4" style={{ minHeight: '500px' }}>
+                    <Form.Control 
                         type="text" 
-                        className="notepad-title-input" 
+                        className="border-0 shadow-none fs-1 fw-bold mb-4 p-0 bg-transparent" 
                         placeholder="Note Title..."
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
+                        style={{ borderBottom: '2px solid transparent' }}
                     />
-                    <div className="notepad-body-wrapper">
-                        <div 
-                            ref={bodyRef}
-                            className="notepad-body-editor"
-                            contentEditable="true"
-                            placeholder="Start writing your note here..."
-                            onInput={(e) => {
-                                setDescription(e.currentTarget.innerHTML);
-                                updateActiveFormats();
-                            }}
-                            onKeyUp={updateActiveFormats}
-                            onClick={updateActiveFormats}
-                        ></div>
-                    </div>
-                </div>
-            </div>
-            
-            <div className="notepad-footer">
-                <span className="char-count">{bodyRef.current?.innerText.length || 0} characters</span>
-            </div>
-        </div>
+                    <div 
+                        ref={bodyRef}
+                        className="notepad-body-editor outline-none fs-5"
+                        contentEditable="true"
+                        style={{ outline: 'none', border: 'none', minHeight: '400px' }}
+                        onInput={() => updateActiveFormats()}
+                        onKeyUp={updateActiveFormats}
+                        onClick={updateActiveFormats}
+                    ></div>
+                </Card.Body>
+
+                <Card.Footer className="bg-white border-top py-2 px-4 d-flex justify-content-between align-items-center">
+                    <small className="text-muted">
+                        {bodyRef.current?.innerText.length || 0} characters
+                    </small>
+                    <small className="text-muted small">
+                        Press Ctrl+S to save
+                    </small>
+                </Card.Footer>
+            </Card>
+        </Container>
     );
 };
 

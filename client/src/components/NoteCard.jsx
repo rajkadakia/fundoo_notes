@@ -1,241 +1,220 @@
 import React from 'react';
-import { Pin, Bell, UserPlus, Image, Archive, MoreVertical, Trash2, RefreshCcw, XOctagon, Tag, X, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Card, Button, Badge, Dropdown, Form } from 'react-bootstrap';
+import { Pin, Image, Archive, Trash2, RefreshCcw, Tag, X } from 'lucide-react';
 import HighlightText from './HighlightText';
-import './NoteCard.css';
 
 const NoteCard = ({ note, allLabels = [], onUpdate, onArchive, onTrash, onRestore, onDeleteForever, onColorChange, onLabelChange, onCreateLabel, onPin, searchQuery, onClick }) => {
-  const [showPalette, setShowPalette] = React.useState(false);
-  const [showLabelSelector, setShowLabelSelector] = React.useState(false);
-  const [showMenu, setShowMenu] = React.useState(false);
   const [labelSearch, setLabelSearch] = React.useState('');
+  const [activeDropdown, setActiveDropdown] = React.useState(null); // null, 'color', 'label'
 
-  // Aesthetic Pastel Colors (Material Design 50) - Mapped to Categories
   const colors = [
     { name: 'Default', hex: '#ffffff' },
-    { name: 'Important', hex: '#e8f5e9' }, // Green
-    { name: 'Flag', hex: '#ffebee' }, // Red
-    { name: 'Archive', hex: '#fffde7' }, // Yellow
-    { name: 'Delete', hex: '#5f6368' }  // Grey
+    { name: 'Important', hex: '#e8f5e9' },
+    { name: 'Flag', hex: '#ffebee' },
+    { name: 'Archive', hex: '#fffde7' },
+    { name: 'Delete', hex: '#5f6368' }
   ];
 
-  const handleArchiveClick = (e) => {
-      e.stopPropagation();
-      onArchive(note._id);
-  };
-    
- const handleLabelToggle = (labelId) => {
-      if (!onLabelChange) return;
-      const currentLabelIds = note.labels ? note.labels.map(l => (l && l._id) || l).filter(id => id) : [];
-      let newLabelIds;
-      if (currentLabelIds.includes(labelId)) {
-          newLabelIds = currentLabelIds.filter(id => id !== labelId);
-      } else {
-          newLabelIds = [...currentLabelIds, labelId];
-      }
-      onLabelChange(note._id, newLabelIds);
+  const handleLabelToggle = (labelId) => {
+    if (!onLabelChange) return;
+    const currentLabelIds = note.labels ? note.labels.map(l => (l && l._id) || l).filter(id => id) : [];
+    let newLabelIds;
+    if (currentLabelIds.includes(labelId)) {
+      newLabelIds = currentLabelIds.filter(id => id !== labelId);
+    } else {
+      newLabelIds = [...currentLabelIds, labelId];
+    }
+    onLabelChange(note._id, newLabelIds);
   };
 
   const handleCreateLabelClick = (e) => {
-      e.stopPropagation();
-      if (onCreateLabel && labelSearch) {
-          onCreateLabel(labelSearch);
-          setLabelSearch('');
-      }
-  };
-
-  const handleTrashClick = (e) => {
-      e.stopPropagation();
-      onTrash(note._id);
-  };
-
-  const handleRestoreClick = (e) => {
-      e.stopPropagation();
-      onRestore(note._id);
-  };
-
-  const handleDeleteForeverClick = (e) => {
-      e.stopPropagation();
-      onDeleteForever(note._id);
+    e.stopPropagation();
+    if (onCreateLabel && labelSearch) {
+      onCreateLabel(labelSearch);
+      setLabelSearch('');
+    }
   };
 
   const getTextColor = (hex) => {
-      if (!hex) return '#202124';
-      const c = hex.toLowerCase();
-      // Only Grey (#5f6368) needs white text.
-      if (c === '#5f6368' || c === '#202124') return '#ffffff';
-      return '#202124';
+    if (!hex) return 'text-dark';
+    const c = hex.toLowerCase();
+    if (c === '#5f6368' || c === '#202124') return 'text-white';
+    return 'text-dark';
   };
 
-  const textColor = getTextColor(note.color);
+  const textColorClass = getTextColor(note.color);
+
+  const handleDropdownToggle = (menu, isOpen) => {
+    if (isOpen) {
+      setActiveDropdown(menu);
+    } else if (activeDropdown === menu) {
+      setActiveDropdown(null);
+    }
+  };
 
   return (
-    <div 
-        className={`note-card`} 
-        style={{ backgroundColor: note.color || '#fff', color: textColor }}
-        onClick={note.isTrash ? undefined : onClick}
-        onMouseLeave={() => setShowPalette(false)}
+    <Card 
+      className={`note-card-bootstrap position-relative ${textColorClass}`}
+      style={{ 
+        backgroundColor: note.color || '#fff', 
+        cursor: 'pointer' 
+      }}
+      onClick={(e) => {
+        if (note.isTrash) return;
+        if (onClick) onClick();
+      }}
     >
-      {/* Overlays */}
-      {note.isTrash && <div className="note-overlay overlay-trash"></div>}
-      {note.isArchived && !note.isTrash && <div className="note-overlay overlay-archive"></div>}
+      <Card.Body className="d-flex flex-column">
+        <div className="d-flex justify-content-between align-items-start mb-2">
+          {note.title && (
+            <Card.Title className="fs-6 fw-bold mb-0 flex-grow-1" style={{ fontFamily: "'Google Sans', sans-serif" }}>
+              <HighlightText text={note.title} highlight={searchQuery} />
+            </Card.Title>
+          )}
+          <Button 
+            variant="link" 
+            className={`p-1 rounded-circle border-0 ${textColorClass} ms-auto opacity-hover`}
+            onClick={(e) => { e.stopPropagation(); if (onPin) onPin(note._id); }}
+            title={note.isPinned ? "Unpin note" : "Pin note"}
+          >
+            <Pin size={18} fill={note.isPinned ? 'currentColor' : 'none'} />
+          </Button>
+        </div>
 
-      <div className="note-content">
-        <div className="note-header">
-            <h3 className="note-title" style={{color: textColor}}>
-                <HighlightText text={note.title} highlight={searchQuery} />
-            </h3>
-            <div className="note-pin-action" onClick={(e) => { e.stopPropagation(); if (onPin) onPin(note._id); }}>
-                 <Pin 
-                    size={18} 
-                    className={`pin-icon ${note.isPinned ? 'pinned' : ''}`} 
-                    style={{
-                        color: textColor, 
-                        fill: note.isPinned ? textColor : 'none',
-                        cursor: 'pointer'
-                    }} 
-                />
-            </div>
-        </div>
-        <div className="note-body" style={{color: textColor}}>
-            <HighlightText text={note.description} highlight={searchQuery} isHtml={true} />
-        </div>
-        
-        {/* Labels */}
+        <Card.Text className="small mb-0" style={{ whiteSpace: 'pre-wrap' }}>
+          <HighlightText text={note.description} highlight={searchQuery} isHtml={true} />
+        </Card.Text>
+
         {note.labels && note.labels.length > 0 && (
-            <div className="note-labels">
-                {note.labels.map((label) => (
-                    label && (
-                    <span key={label._id || label} className="label-chip" onClick={(e) => e.stopPropagation()}>
-                        <span className="label-text">{label.name ? label.name : 'Label'}</span>
-                        <X size={14} className="label-remove-icon" onClick={() => handleLabelToggle(label._id || label)} />
-                    </span>
-                    )
-                ))}
-            </div>
-        )}
-      </div>
-      
-      <div className="note-actions" onClick={(e) => e.stopPropagation()}>
-        {note.isTrash ? (
-            <>
-                <button className="action-btn" title="Restore" onClick={handleRestoreClick} style={{color: textColor}}>
-                    <RefreshCcw size={18} />
-                </button>
-                <button className="action-btn" title="Delete Forever" onClick={handleDeleteForeverClick} style={{color: textColor}}>
-                    <Trash2 size={18} />
-                </button>
-            </>
-        ) : (
-            <div className="note-actions-container" style={{position: 'relative', width: '100%', display: 'flex', alignItems: 'center'}}>
-                 {/* Expand/Collapse Arrow */}
-                <button 
-                    className="action-btn expand-btn" 
-                    title={showMenu ? "Collapse" : "Expand actions"} 
-                    onClick={(e) => { e.stopPropagation(); setShowMenu(!showMenu); setShowPalette(false); setShowLabelSelector(false); }}
-                    style={{color: textColor}}
+          <div className="mt-2 d-flex flex-wrap gap-1">
+            {note.labels.map((label) => (
+              label && (
+                <Badge 
+                  key={label._id || label} 
+                  pill 
+                  bg="light" 
+                  text="dark" 
+                  className="border-0 px-2 py-1 d-flex align-items-center fw-normal"
+                  style={{ fontSize: '0.7rem', backgroundColor: 'rgba(0,0,0,0.05)' }}
+                  onClick={(e) => e.stopPropagation()}
                 >
-                    {showMenu ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
-                </button>
-
-                {/* Horizontal Actions Row (Hidden by default) */}
-                {showMenu && (
-                    <div className="expanded-actions-row" onClick={(e) => e.stopPropagation()}>
-                        
-                        <button className="action-btn" title="Remind me" style={{color: textColor}}>
-                            <Bell size={18} />
-                        </button>
-                        <button className="action-btn" title="Collaborator" style={{color: textColor}}>
-                            <UserPlus size={18} />
-                        </button>
-
-                         <div style={{position: 'relative'}}>
-                            <button 
-                                className="action-btn" 
-                                title="Change Color" 
-                                onClick={(e) => { e.stopPropagation(); setShowPalette(!showPalette); setShowLabelSelector(false); }}
-                                style={{color: textColor}}
-                            >
-                                <Image size={18} />
-                            </button>
-                            {showPalette && (
-                                <div className="color-palette-popup category-list" onClick={(e) => e.stopPropagation()}>
-                                    {colors.map((c) => (
-                                        <div 
-                                            key={c.name} 
-                                            className="category-option" 
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                onColorChange(note._id, c.hex);
-                                                setShowPalette(false);
-                                            }}
-                                        >
-                                            <span className="category-dot" style={{backgroundColor: c.hex, border: c.hex === '#ffffff' ? '1px solid #ddd' : 'none'}}></span>
-                                            <span className="category-name">{c.name}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-
-                        <div style={{position: 'relative'}}>
-                            <button 
-                                className="action-btn" 
-                                title="Change labels" 
-                                onClick={(e) => { e.stopPropagation(); setShowLabelSelector(!showLabelSelector); setShowPalette(false); }}
-                                style={{color: textColor}}
-                            >
-                                <Tag size={18} />
-                            </button>
-                            {showLabelSelector && (
-                                <div className="label-selector-popup" onClick={(e) => e.stopPropagation()}>
-                                    <div className="label-search">
-                                        <input 
-                                            type="text" 
-                                            placeholder="Enter label name" 
-                                            value={labelSearch}
-                                            onChange={(e) => setLabelSearch(e.target.value)}
-                                            autoFocus
-                                        />
-                                    </div>
-                        <div className="label-list">
-                            {(allLabels || []).filter(l => l && l.name && l.name.toLowerCase().includes(labelSearch.toLowerCase())).map(label => {
-                                const isChecked = note.labels && note.labels.some(nl => nl && (nl._id || nl) === label._id);
-                                return (
-                                                <div key={label._id} className="label-item" onClick={() => handleLabelToggle(label._id)}>
-                                                    <input type="checkbox" checked={isChecked} readOnly />
-                                                    <span>{label.name}</span>
-                                                </div>
-                                            );
-                                        })}
-                                        {labelSearch && !allLabels.some(l => l.name.toLowerCase() === labelSearch.toLowerCase()) && (
-                                            <div className="label-create-item" onClick={handleCreateLabelClick}>
-                                                <span className="plus">+</span>
-                                                <span>Create "{labelSearch}"</span>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                        
-                        <button 
-                            className={`action-btn ${note.isArchived ? 'active' : ''}`} 
-                            title={note.isArchived ? "Unarchive" : "Archive"} 
-                            onClick={handleArchiveClick}
-                            style={{color: textColor}}
-                        >
-                        <Archive size={18} />
-                        </button>
-                        
-                        <button className="action-btn" title="Delete" onClick={handleTrashClick} style={{color: textColor}}>
-                        <Trash2 size={18} />
-                        </button>
-                    </div>
-                )}
-            </div>
+                  <span className="me-1">{label.name || 'Label'}</span>
+                  <X 
+                    size={10} 
+                    className="cursor-pointer" 
+                    onClick={(e) => { e.stopPropagation(); handleLabelToggle(label._id || label); }} 
+                  />
+                </Badge>
+              )
+            ))}
+          </div>
         )}
-      </div>
-    </div>
+      </Card.Body>
+
+      <Card.Footer className="bg-transparent border-0 p-1 d-flex justify-content-between align-items-center opacity-hover">
+        <div className="d-flex align-items-center">
+          {note.isTrash ? (
+            <>
+              <Button variant="link" size="sm" className={`${textColorClass} p-2`} onClick={(e) => { e.stopPropagation(); onRestore(note._id); }} title="Restore">
+                <RefreshCcw size={16} />
+              </Button>
+              <Button variant="link" size="sm" className={`${textColorClass} p-2`} onClick={(e) => { e.stopPropagation(); onDeleteForever(note._id); }} title="Delete forever">
+                <Trash2 size={16} />
+              </Button>
+            </>
+          ) : (
+            <>
+              <Dropdown 
+                className="d-inline" 
+                onClick={(e) => e.stopPropagation()}
+                show={activeDropdown === 'color'}
+                onToggle={(isOpen) => handleDropdownToggle('color', isOpen)}
+              >
+                <Dropdown.Toggle as={Button} variant="link" size="sm" className={`p-2 border-0 ${textColorClass} no-caret shadow-none`}>
+                  <Image size={16} />
+                </Dropdown.Toggle>
+                <Dropdown.Menu className="p-1 min-w-auto shadow border-0" style={{ borderRadius: '8px' }}>
+                  <div className="d-flex flex-wrap gap-1 p-2" style={{ width: '130px' }}>
+                    {colors.map((c) => (
+                      <div 
+                        key={c.name} 
+                        className={`rounded-circle border cursor-pointer`} 
+                        style={{ backgroundColor: c.hex, width: '25px', height: '25px' }}
+                        title={c.name}
+                        onClick={(e) => { e.stopPropagation(); onColorChange(note._id, c.hex); setActiveDropdown(null); }}
+                      />
+                    ))}
+                  </div>
+                </Dropdown.Menu>
+              </Dropdown>
+
+              <Dropdown 
+                className="d-inline" 
+                onClick={(e) => e.stopPropagation()}
+                show={activeDropdown === 'label'}
+                onToggle={(isOpen) => handleDropdownToggle('label', isOpen)}
+              >
+                <Dropdown.Toggle as={Button} variant="link" size="sm" className={`p-2 border-0 ${textColorClass} no-caret shadow-none`}>
+                  <Tag size={16} />
+                </Dropdown.Toggle>
+                <Dropdown.Menu className="p-2 shadow border-0" style={{ minWidth: '200px', borderRadius: '8px' }}>
+                  <Form.Control 
+                    size="sm" 
+                    placeholder="Enter label name" 
+                    className="mb-2 shadow-none border-0 border-bottom rounded-0" 
+                    value={labelSearch}
+                    onChange={(e) => setLabelSearch(e.target.value)}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                  <div className="overflow-auto" style={{ maxHeight: '150px' }}>
+                    {(allLabels || []).filter(l => l?.name?.toLowerCase().includes(labelSearch.toLowerCase())).map(label => {
+                      const isChecked = note.labels && note.labels.some(nl => (nl._id || nl) === label._id);
+                      return (
+                        <Form.Check 
+                          key={label._id} 
+                          type="checkbox" 
+                          label={label.name} 
+                          checked={isChecked} 
+                          onChange={() => handleLabelToggle(label._id)}
+                          onClick={(e) => e.stopPropagation()}
+                          className="small mx-2 my-1"
+                        />
+                      );
+                    })}
+                    {labelSearch && !allLabels.some(l => l.name.toLowerCase() === labelSearch.toLowerCase()) && (
+                      <Button variant="link" size="sm" className="p-0 text-decoration-none mx-2 mt-2" onClick={handleCreateLabelClick}>
+                        + Create "{labelSearch}"
+                      </Button>
+                    )}
+                  </div>
+                </Dropdown.Menu>
+              </Dropdown>
+
+              <Button 
+                variant="link" 
+                size="sm" 
+                className={`${textColorClass} p-2`} 
+                onClick={(e) => { e.stopPropagation(); onArchive(note._id); }}
+                title={note.isArchived ? "Unarchive" : "Archive"}
+              >
+                {note.isArchived ? <RefreshCcw size={16} /> : <Archive size={16} />}
+              </Button>
+            </>
+          )}
+        </div>
+        {!note.isTrash && (
+           <Button 
+            variant="link" 
+            size="sm" 
+            className={`${textColorClass} p-2`} 
+            onClick={(e) => { e.stopPropagation(); onTrash(note._id); }}
+            title="Trash"
+          >
+            <Trash2 size={16} />
+          </Button>
+        )}
+      </Card.Footer>
+    </Card>
   );
 };
 
