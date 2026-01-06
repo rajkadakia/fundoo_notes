@@ -1,0 +1,101 @@
+.edit-labels-modal {
+    display: flex;
+    flex-direction: column;
+    /* Styles handled by Layout.css mostly but overrides here */
+    background: #fff;
+    width: 300px;
+    max-height: 80vh;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px 0 rgba(0,0,0,0.2), 0 4px 8px 3px rgba(0,0,0,0.1);
+}
+
+.modal-header {
+    padding: 16px;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.modal-content {
+    padding: 0 16px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.label-row {
+    display: flex;
+    align-items: center;
+    height: 48px;
+    gap: 8px;
+}
+
+.label-row input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 14px;
+    font-weight: 500;
+    background: transparent;
+    padding: 4px 0;
+    border-bottom: 1px solid transparent;
+}
+
+.label-row input:focus {
+    border-bottom: 1px solid #ddd;
+}
+
+.create-row {
+    border-bottom: 1px solid #f1f3f4;
+    margin-bottom: 8px;
+}
+
+.icon-btn-small {
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: #5f6368;
+    padding: 8px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.icon-btn-small:hover {
+    background-color: #f1f3f4;
+    color: #202124;
+}
+
+.label-text {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 500;
+    color: #3c4043;
+    padding: 0 4px;
+    cursor: pointer;
+}
+
+.modal-footer {
+    padding: 16px;
+    display: flex;
+    justify-content: flex-end;
+    border-top: 1px solid #f1f3f4;
+}
+
+.done-btn {
+    border: none;
+    background: none;
+    font-weight: 500;
+    font-size: 14px;
+    cursor: pointer;
+    padding: 8px 24px;
+    border-radius: 4px;
+    transition: background 0.1s;
+}
+
+.done-btn:hover {
+    background-color: #f1f3f4;
+}
