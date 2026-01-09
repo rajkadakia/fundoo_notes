@@ -81,9 +81,37 @@ const NoteCard = ({ note, allLabels = [], onUpdate, onArchive, onTrash, onRestor
           </Button>
         </div>
 
-        <Card.Text className="small mb-0" style={{ whiteSpace: 'pre-wrap' }}>
-          <HighlightText text={note.description} highlight={searchQuery} isHtml={true} />
-        </Card.Text>
+        {note.items && note.items.length > 0 ? (
+          <div className="checklist-container mb-2">
+            {note.items.map((item, idx) => (
+              <div key={idx} className="d-flex align-items-center mb-1">
+                <Form.Check 
+                  type="checkbox"
+                  checked={item.isChecked}
+                  onChange={(e) => {
+                    e.stopPropagation();
+                    const newItems = [...note.items];
+                    newItems[idx].isChecked = e.target.checked;
+                    onUpdate(note._id, { items: newItems });
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                  className="me-2"
+                />
+                <span style={{ 
+                  textDecoration: item.isChecked ? 'line-through' : 'none',
+                  opacity: item.isChecked ? 0.6 : 1,
+                  fontSize: '0.9rem'
+                }}>
+                  <HighlightText text={item.text} highlight={searchQuery} />
+                </span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <Card.Text className="small mb-0" style={{ whiteSpace: 'pre-wrap' }}>
+            <HighlightText text={note.description} highlight={searchQuery} isHtml={true} />
+          </Card.Text>
+        )}
 
         {note.labels && note.labels.length > 0 && (
           <div className="mt-2 d-flex flex-wrap gap-1">

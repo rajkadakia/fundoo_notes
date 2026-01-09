@@ -122,3 +122,30 @@
 .d-flex:hover .hover-opacity-100 {
   opacity: 1 !important;
 }
+
+/* Checklist and Hover effects */
+.icon-hover {
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.icon-hover:hover {
+  background-color: rgba(0,0,0,0.05);
+  color: var(--text-main) !important;
+}
+
+.checklist-container .form-check-input:checked {
+  background-color: var(--text-secondary);
+  border-color: var(--text-secondary);
+}
+
+.checklist-page-editor, .checklist-edit, .checklist-create {
+  margin-top: 8px;
+}
+
+.checklist-page-editor .form-control:focus {
+  border-bottom: 1px solid var(--border-color) !important;
+}
+

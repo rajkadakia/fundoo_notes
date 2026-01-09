@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Container, Spinner } from 'react-bootstrap';
 import { Lightbulb, Archive, Trash2 } from 'lucide-react';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import NoteCard from '../components/NoteCard';
+import CreateNote from '../components/CreateNote';
 import EditNoteModal from '../components/EditNoteModal';
 import { 
     getAllNotes, 
@@ -139,6 +141,59 @@ const Dashboard = ({ type = 'notes' }) => {
       fetchNotes();
   };
 
+  const handleUpdateNote = async (id, data) => {
+      try {
+          await updateNote(id, data);
+          fetchNotes();
+      } catch (error) {
+          console.error("Error updating note:", error);
+      }
+  };
+
+  const handleDragEnd = async (result) => {
+    if (!result.destination) return;
+
+    const { source, destination, droppableId } = result;
+    
+    // Get the list that was dragged from
+    const sourceList = droppableId === 'pinned-notes' ? pinnedNotes : otherNotes;
+    const items = Array.from(notes);
+    
+    // Find the note in the main list
+    const noteToMove = sourceList[source.index];
+    const sourceIndexInMain = items.findIndex(n => n._id === noteToMove._id);
+    
+    // Find the replacement position in the main list
+    // This is tricky because we have two separate lists.
+    // For simplicity, let's just update the 'notes' array by reordering the specific sub-list
+    
+    const newNotes = Array.from(notes);
+    const subList = droppableId === 'pinned-notes' ? [...pinnedNotes] : [...otherNotes];
+    const [reorderedItem] = subList.splice(source.index, 1);
+    subList.splice(destination.index, 0, reorderedItem);
+    
+    // Merge back into main notes list
+    const mergedNotes = newNotes.map(n => {
+        const updated = subList.find(s => s._id === n._id);
+        return updated || n;
+    });
+    
+    // Update state
+    setNotes(mergedNotes);
+
+    if (type !== 'notes') return;
+
+    try {
+        // Update order in backend
+        await Promise.all(subList.map((note, index) => 
+            updateNote(note._id, { order: index })
+        ));
+    } catch (error) {
+        console.error("Error updating note order:", error);
+        fetchNotes();
+    }
+  };
+
   const filteredNotes = notes.filter(note => {
     const query = (searchQuery || '').toLowerCase();
     const titleMatch = note.title?.toLowerCase().includes(query);
@@ -149,32 +204,55 @@ const Dashboard = ({ type = 'notes' }) => {
   const pinnedNotes = filteredNotes.filter(n => n.isPinned);
   const otherNotes = filteredNotes.filter(n => !n.isPinned);
 
-  const renderMasonryGrid = (notesList) => (
-    <div className="masonry-grid">
-      {notesList.map((note) => (
-        <div key={note._id} className="masonry-item">
-          <NoteCard 
-            note={note} 
-            allLabels={labels}
-            onArchive={handleArchive}
-            onTrash={handleTrash}
-            onRestore={handleRestore}
-            onDeleteForever={handleDeleteForever}
-            onColorChange={handleColorChange}
-            onLabelChange={handleLabelChange}
-            onCreateLabel={handleCreateLabel}
-            onPin={handlePin}
-            searchQuery={searchQuery}
-            onUpdate={() => handleNoteClick(note)}
-            onClick={() => handleNoteClick(note)}
-          />
-        </div>
-      ))}
-    </div>
+  const renderMasonryGrid = (notesList, droppableId) => (
+    <DragDropContext onDragEnd={handleDragEnd}>
+      <Droppable droppableId={droppableId}>
+        {(provided) => (
+          <div 
+            className="masonry-grid"
+            {...provided.droppableProps}
+            ref={provided.innerRef}
+          >
+            {notesList.map((note, index) => (
+              <Draggable key={note._id} draggableId={note._id} index={index}>
+                {(provided) => (
+                  <div 
+                    className="masonry-item"
+                    ref={provided.innerRef}
+                    {...provided.draggableProps}
+                    {...provided.dragHandleProps}
+                  >
+                    <NoteCard 
+                      note={note} 
+                      allLabels={labels}
+                      onArchive={handleArchive}
+                      onTrash={handleTrash}
+                      onRestore={handleRestore}
+                      onDeleteForever={handleDeleteForever}
+                      onColorChange={handleColorChange}
+                      onLabelChange={handleLabelChange}
+                      onCreateLabel={handleCreateLabel}
+                      onPin={handlePin}
+                      searchQuery={searchQuery}
+                      onUpdate={handleUpdateNote}
+                      onClick={() => handleNoteClick(note)}
+                    />
+                  </div>
+                )}
+              </Draggable>
+            ))}
+            {provided.placeholder}
+          </div>
+        )}
+      </Droppable>
+    </DragDropContext>
   );
 
   return (
     <div className="dashboard-content py-4 px-2">
+      {type === 'notes' && !searchQuery && (
+        <CreateNote onNoteCreated={fetchNotes} />
+      )}
       {loading ? (
         <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '50vh' }}>
           <Spinner animation="border" variant="warning" />
@@ -185,14 +263,14 @@ const Dashboard = ({ type = 'notes' }) => {
           {pinnedNotes.length > 0 && (
             <div className="mb-5">
               <div className="section-title">Pinned</div>
-              {renderMasonryGrid(pinnedNotes)}
+              {renderMasonryGrid(pinnedNotes, "pinned-notes")}
             </div>
           )}
 
           {otherNotes.length > 0 && (
             <div>
               {pinnedNotes.length > 0 && <div className="section-title">Others</div>}
-              {renderMasonryGrid(otherNotes)}
+              {renderMasonryGrid(otherNotes, "other-notes")}
             </div>
           )}
 

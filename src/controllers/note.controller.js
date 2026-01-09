@@ -21,6 +21,8 @@ export const createNote = async (req, res) => {
       isTrash,
       isPinned,
       labels,
+      items: req.body.items,
+      order: req.body.order,
       userId: req.user._id
     };
     const note = await createNoteService(noteData);
@@ -96,7 +98,9 @@ export const updateNote = async (req, res) => {
       isArchived: req.body.isArchived,
       isTrash: req.body.isTrash,
       isPinned: req.body.isPinned,
-      labels: req.body.labels
+      labels: req.body.labels,
+      items: req.body.items,
+      order: req.body.order
     };
 
     const updatedNote = await updateNoteService(req.params.id, req.user._id, updateData);

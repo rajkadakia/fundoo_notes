@@ -34,6 +34,14 @@ const noteSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Label',
   }],
+  items: [{
+    text: { type: String, required: true },
+    isChecked: { type: Boolean, default: false }
+  }],
+  order: {
+    type: Number,
+    default: 0
+  },
 }, {
   timestamps: true,
 });
