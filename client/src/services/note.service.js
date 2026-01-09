@@ -59,3 +59,9 @@ export const getTrashedNotes = async () => {
     const response = await api.get('/notes/trash');
     return response.data;
 };
+
+export const getNotesByLabel = async (labelId) => {
+    const response = await api.get(`/notes/label/${labelId}`);
+    return response.data;
+};
+

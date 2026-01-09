@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
-import CreateNotePage from './pages/CreateNotePage';
 import Layout from './components/Layout';
 import { LabelProvider } from './context/LabelContext';
 import { SearchProvider } from './context/SearchContext';
@@ -25,11 +24,9 @@ function App() {
             {/* Protected Routes */}
             <Route element={<Layout />}>
               <Route path="/dashboard" element={<Dashboard type="notes" />} />
-              <Route path="/create-note" element={<CreateNotePage />} />
               <Route path="/archive" element={<Dashboard type="archive" />} />
               <Route path="/trash" element={<Dashboard type="trash" />} />
-              {/* Add Label route matching */}
-              {/* <Route path="/label/:labelName" element={<Dashboard type="label" />} /> */}
+              <Route path="/label/:labelId" element={<Dashboard type="label" />} />
             </Route>
             
             {/* Redirect root to login for now */}

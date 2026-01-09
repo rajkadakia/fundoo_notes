@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
 import { Container, Spinner } from 'react-bootstrap';
 import { Lightbulb, Archive, Trash2 } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
@@ -15,12 +16,14 @@ import {
     restoreNote, 
     deleteNoteForever,
     updateNote,
-    togglePin
+    togglePin,
+    getNotesByLabel
 } from '../services/note.service';
 import { useLabels } from '../context/LabelContext';
 import { useSearch } from '../context/SearchContext';
 
 const Dashboard = ({ type = 'notes' }) => {
+  const { labelId } = useParams();
   const [notes, setNotes] = useState([]);
   const { labels, addLabel } = useLabels();
   const { searchQuery } = useSearch();
@@ -35,6 +38,8 @@ const Dashboard = ({ type = 'notes' }) => {
           data = await getArchivedNotes();
       } else if (type === 'trash') {
           data = await getTrashedNotes();
+      } else if (type === 'label' && labelId) {
+          data = await getNotesByLabel(labelId);
       } else {
           data = await getAllNotes();
       }
@@ -48,7 +53,7 @@ const Dashboard = ({ type = 'notes' }) => {
 
   useEffect(() => {
     fetchNotes();
-  }, [type]);
+  }, [type, labelId]);
 
   const handleArchive = async (id) => {
     try {
@@ -250,8 +255,8 @@ const Dashboard = ({ type = 'notes' }) => {
 
   return (
     <div className="dashboard-content py-4 px-2">
-      {type === 'notes' && !searchQuery && (
-        <CreateNote onNoteCreated={fetchNotes} />
+      {(type === 'notes' || type === 'label') && !searchQuery && (
+        <CreateNote onNoteCreated={fetchNotes} initialLabelId={type === 'label' ? labelId : null} />
       )}
       {loading ? (
         <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '50vh' }}>

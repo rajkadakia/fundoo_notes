@@ -22,14 +22,6 @@ const Layout = () => {
     navigate('/login');
   };
 
-  const navItems = [
-    { label: 'Notes', icon: <Lightbulb size={20} />, path: '/dashboard' },
-    { label: 'Create Note', icon: <Edit2 size={20} />, path: '/create-note' },
-    { label: 'Reminders', icon: <Bell size={20} />, path: '/reminders' },
-    { label: 'Archive', icon: <Archive size={20} />, path: '/archive' },
-    { label: 'Trash', icon: <Trash2 size={20} />, path: '/trash' },
-  ];
-
   React.useEffect(() => {
     refreshLabels();
   }, []);
@@ -86,40 +78,78 @@ const Layout = () => {
           style={{ width: sidebarOpen ? '280px' : '80px', transition: 'width 0.2s ease-in-out' }}
         >
           <Nav className="flex-column px-2">
-            {navItems.map((item) => (
-              <Nav.Link
-                key={item.label}
-                as={Link}
-                to={item.path}
-                className={`nav-item-bootstrap d-flex align-items-center rounded-pill mb-1 px-4 py-2 text-dark ${
-                  location.pathname === item.path ? 'active-bg bg-warning-subtle fw-bold' : ''
-                }`}
-              >
-                <span className="me-4">{item.icon}</span>
-                {sidebarOpen && <span>{item.label}</span>}
-              </Nav.Link>
-            ))}
+            {/* Notes */}
+            <Nav.Link
+              as={Link}
+              to="/dashboard"
+              className={`nav-item-bootstrap d-flex align-items-center rounded-pill mb-1 px-4 py-2 text-dark ${
+                location.pathname === '/dashboard' ? 'active-bg bg-warning-subtle fw-bold' : ''
+              }`}
+            >
+              <span className="me-4"><Lightbulb size={20} /></span>
+              {sidebarOpen && <span>Notes</span>}
+            </Nav.Link>
 
-            <div className="border-top my-3 mx-3"></div>
-            
-            <div className="px-4 mb-2 d-flex justify-content-between align-items-center text-muted small fw-bold letter-spacing-1">
-              {sidebarOpen && <span>LABELS</span>}
-              {sidebarOpen && (
-                <Button variant="link" className="p-0 text-muted" onClick={() => setShowLabelModal(true)}>
-                  <Edit2 size={14} />
-                </Button>
-              )}
-            </div>
+            {/* Reminders */}
+            <Nav.Link
+              as={Link}
+              to="/reminders"
+              className={`nav-item-bootstrap d-flex align-items-center rounded-pill mb-1 px-4 py-2 text-dark ${
+                location.pathname === '/reminders' ? 'active-bg bg-warning-subtle fw-bold' : ''
+              }`}
+            >
+              <span className="me-4"><Bell size={20} /></span>
+              {sidebarOpen && <span>Reminders</span>}
+            </Nav.Link>
 
+            {/* Dynamic Labels */}
             {labels.map(label => (
               <Nav.Link
                 key={label._id}
-                className="nav-item-bootstrap d-flex align-items-center rounded-pill mb-1 px-4 py-2 text-dark"
+                as={Link}
+                to={`/label/${label._id}`}
+                className={`nav-item-bootstrap d-flex align-items-center rounded-pill mb-1 px-4 py-2 text-dark ${
+                  location.pathname === `/label/${label._id}` ? 'active-bg bg-warning-subtle fw-bold' : ''
+                }`}
               >
-                <span className="me-4"><Tag size={18} /></span>
+                <span className="me-4"><Tag size={20} /></span>
                 {sidebarOpen && <span>{label.name}</span>}
               </Nav.Link>
             ))}
+
+            {/* Edit Labels */}
+            <Nav.Link
+              as="div"
+              onClick={() => setShowLabelModal(true)}
+              className="nav-item-bootstrap d-flex align-items-center rounded-pill mb-1 px-4 py-2 text-dark cursor-pointer"
+            >
+              <span className="me-4"><Edit2 size={20} /></span>
+              {sidebarOpen && <span>Edit labels</span>}
+            </Nav.Link>
+
+            {/* Archive */}
+            <Nav.Link
+              as={Link}
+              to="/archive"
+              className={`nav-item-bootstrap d-flex align-items-center rounded-pill mb-1 px-4 py-2 text-dark ${
+                location.pathname === '/archive' ? 'active-bg bg-warning-subtle fw-bold' : ''
+              }`}
+            >
+              <span className="me-4"><Archive size={20} /></span>
+              {sidebarOpen && <span>Archive</span>}
+            </Nav.Link>
+
+            {/* Trash */}
+            <Nav.Link
+              as={Link}
+              to="/trash"
+              className={`nav-item-bootstrap d-flex align-items-center rounded-pill mb-1 px-4 py-2 text-dark ${
+                location.pathname === '/trash' ? 'active-bg bg-warning-subtle fw-bold' : ''
+              }`}
+            >
+              <span className="me-4"><Trash2 size={20} /></span>
+              {sidebarOpen && <span>Trash</span>}
+            </Nav.Link>
           </Nav>
         </aside>
 
