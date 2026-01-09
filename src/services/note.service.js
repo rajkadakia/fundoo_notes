@@ -25,7 +25,7 @@ export const getAllNotesService = async (userId, page = 1, limit = NOTES_LIMIT) 
   }
 
   const skip = (page - 1) * limit;
-  const notes = await Note.find({ userId, isTrash: false })
+  const notes = await Note.find({ userId, isTrash: false, isArchived: false })
     .populate('labels')
     .sort({ isPinned: -1, order: 1, createdAt: -1 })
     .skip(skip)
@@ -109,7 +109,7 @@ export const getNotesByLabelService = async (userId, labelId, page = 1, limit = 
   }
 
   const skip = (page - 1) * limit;
-  const notes = await Note.find({ userId, labels: labelId, isTrash: false })
+  const notes = await Note.find({ userId, labels: labelId, isTrash: false, isArchived: false })
     .populate('labels')
     .sort({ isPinned: -1, createdAt: -1 })
     .skip(skip)
